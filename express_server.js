@@ -60,7 +60,7 @@ app.post("/urls", (req, res) => {
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  console.log(req.params.shortURL);
+  // console.log(req.params.shortURL);
   const longURL = urlDatabase[req.params.shortURL];//grab long URL from object
   res.redirect(longURL);
 });
