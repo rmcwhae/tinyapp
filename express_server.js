@@ -129,6 +129,12 @@ app.post('/logout', (req, res) => {
 });
 
 app.post('/register', (req, res) => {
+  if (!req.body["password"] || !req.body["email"]) {
+    res.status(400).send('All fields must be filled out. Please return to the previous page and enter all required form inputs.');
+  }
+  if (checkForExistingEmail(req.body["email"], users)) {
+    res.status(400).send('Error: Email address has already been registered. Please return to the previous page and use a different email address');
+  }
   let newUserID = generateRandomString();
   users[newUserID] = {};
   users[newUserID].id = newUserID;
