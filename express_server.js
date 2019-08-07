@@ -21,15 +21,10 @@ const urlDatabase = {
 };
 
 const users = {
-  "userRandomID": {
-    id: "userRandomID",
-    email: "user@example.com",
-    password: "purple-monkey-dinosaur"
-  },
-  "user2RandomID": {
-    id: "user2RandomID",
-    email: "user2@example.com",
-    password: "dishwasher-funk"
+  "x43d4r": {
+    id: "x43d4r",
+    email: "russell@b.com",
+    password: "stuff"
   }
 };
 
@@ -80,6 +75,9 @@ app.get("/urls/new", (req, res) => {
   let templateVars = {
     user: users[req.cookies["user_id"]]
   };
+  if (!templateVars.user) {
+    res.redirect('/login');
+  }
   res.render("urls_new", templateVars);
 });
 
