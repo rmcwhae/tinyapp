@@ -26,14 +26,14 @@ const users = {
   "x43d4r": {
     id: "x43d4r",
     email: "russell@a.com",
-    password: "stuff"
+    password: "$2b$10$IRUSZoB4dctyflA4lmWhJukbQS6nMZ1FhiBLE6Ka7VCRyrjMbACqS"
   },
   "gt7574": {
     id: "gt7574",
     email: "russell@b.com",
-    password: "things"
+    password: "$2b$10$LemPBJdGHiuYS5gz1LmrLeAx1TZa4mTyqK5R61OmRQvMlobgMq4Oy"
   }
-};
+};//user a pw: stuff; user b pw: things
 
 /* FUNCTION DEFINITIONS */
 
@@ -182,9 +182,9 @@ app.post('/login', (req, res) => {
   }
   if (!checkForExistingEmail(inputEmail, users)) {
     res.status(403).send('Error: Email address could not be found.');
-  } else if (inputPassword !== users[existingUserID].password) {
+  } else if (!bcrypt.compareSync(inputPassword, users[existingUserID].password)) {
     res.status(403).send('Error: Incorrect password.');
-  } else {
+  } else if (bcrypt.compareSync(inputPassword, users[existingUserID].password)) {
     // login success!
     res.cookie('user_id', existingUserID);
     res.redirect('/urls');
@@ -207,7 +207,8 @@ app.post('/register', (req, res) => {
   users[newUserID] = {};
   users[newUserID].id = newUserID;
   users[newUserID].email = req.body["email"];
-  users[newUserID].password = req.body["password"];
+  users[newUserID].password = bcrypt.hashSync(req.body["password"], 10);
+  // console.log(users);
   res.cookie('user_id', newUserID);
   res.redirect('/urls');
 });
