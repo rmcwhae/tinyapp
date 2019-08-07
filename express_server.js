@@ -71,6 +71,15 @@ const urlsForUser = function(id) {
   return ret;
 };
 
+const validShortUrl = function(shortURL) {
+  for (let url in urlDatabase) {
+    if (shortURL === url) {
+      return true;
+    }
+  }
+  return false;
+};
+
 /* GET REQUEST ROUTING */
 
 app.get("/", (req, res) => {
@@ -107,18 +116,27 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-  let templateVars = {
-    shortURL: req.params.shortURL,
-    longURL: urlDatabase[req.params.shortURL].longURL,
-    user: users[req.session.user_id]
-  };
-  res.render("urls_show", templateVars);
+  let givenShortURL = req.params.shortURL;
+  if (!validShortUrl(givenShortURL)) {
+    res.status(403).send('Error: Invalid Short URL.');
+  } else {
+    let templateVars = {
+      shortURL: givenShortURL,
+      longURL: urlDatabase[givenShortURL].longURL,
+      user: users[req.session.user_id]
+    };
+    res.render("urls_show", templateVars);
+  }
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  // console.log(urlDatabase[req.params.shortURL]);
-  const longURL = urlDatabase[req.params.shortURL].longURL;
-  res.redirect(longURL);
+  let givenShortURL = req.params.shortURL;
+  if (!validShortUrl(givenShortURL)) {
+    res.status(403).send('Error: Invalid Short URL.');
+  } else {
+    const longURL = urlDatabase[givenShortURL].longURL;
+    res.redirect(longURL);
+  }
 });
 
 app.get('/register', (req, res) => {
