@@ -16,15 +16,21 @@ app.listen(PORT, () => {
 /* "DATABASES" (notice quotes…) */
 
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  "b2xVn2": { longURL: "http://www.lighthouselabs.ca", userID: "x43d4r" },
+  "9sm5xK": { longURL: "http://www.google.com", userID: "x43d4r"},
+  "57fh37": { longURL: "http://www.engadget.com", userID: "gt7574"}
 };
 
 const users = {
   "x43d4r": {
     id: "x43d4r",
-    email: "russell@b.com",
+    email: "russell@a.com",
     password: "stuff"
+  },
+  "gt7574": {
+    id: "gt7574",
+    email: "russell@b.com",
+    password: "things"
   }
 };
 
@@ -92,7 +98,7 @@ app.get("/urls/:shortURL", (req, res) => {
 
 app.get("/u/:shortURL", (req, res) => {
   // console.log(urlDatabase[req.params.shortURL]);
-  const longURL = urlDatabase[req.params.shortURL];//grab long URL from object
+  const longURL = urlDatabase[req.params.shortURL];
   res.redirect(longURL);
 });
 
@@ -113,7 +119,6 @@ app.get('/login', (req, res) => {
 /* POST REQUEST ROUTING */
 
 app.post("/urls/:shortURL/delete", (req, res) => {
-  // delete from object
   delete urlDatabase[req.params.shortURL];
   res.redirect('/urls');
 });
@@ -142,13 +147,12 @@ app.post('/login', (req, res) => {
       existingUserID = userID;
     }
   }
-  // console.log(existingUserID);
   if (!checkForExistingEmail(inputEmail, users)) {
     res.status(403).send('Error: Email address could not be found.');
   } else if (inputPassword !== users[existingUserID].password) {
     res.status(403).send('Error: Incorrect password.');
   } else {
-    //success!
+    // login success!
     res.cookie('user_id', existingUserID);
     res.redirect('/urls');
   }
@@ -171,7 +175,6 @@ app.post('/register', (req, res) => {
   users[newUserID].id = newUserID;
   users[newUserID].email = req.body["email"];
   users[newUserID].password = req.body["password"];
-  // console.log(users);
   res.cookie('user_id', newUserID);
   res.redirect('/urls');
 });
