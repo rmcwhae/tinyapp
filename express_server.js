@@ -87,7 +87,7 @@ app.get("/hello", (req, res) => {
 
 app.get("/urls", (req, res) => {
   //filter stuff here
-  let userID = req.cookies["user_id"];
+  let userID = req.session.user_id;
   let templateVars = {
     user: users[userID],
     urls: urlsForUser(userID)
@@ -97,7 +97,7 @@ app.get("/urls", (req, res) => {
 
 app.get("/urls/new", (req, res) => {
   let templateVars = {
-    user: users[req.cookies["user_id"]]
+    user: users[req.session.user_id]
   };
   if (!templateVars.user) {
     res.redirect('/login');
@@ -110,7 +110,7 @@ app.get("/urls/:shortURL", (req, res) => {
   let templateVars = {
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL].longURL,
-    user: users[req.cookies["user_id"]]
+    user: users[req.session.user_id]
   };
   res.render("urls_show", templateVars);
 });
@@ -123,14 +123,14 @@ app.get("/u/:shortURL", (req, res) => {
 
 app.get('/register', (req, res) => {
   let templateVars = {
-    user: users[req.cookies["user_id"]]
+    user: users[req.session.user_id]
   };
   res.render("urls_register", templateVars);
 });
 
 app.get('/login', (req, res) => {
   let templateVars = {
-    user: users[req.cookies["user_id"]]
+    user: users[req.session.user_id]
   };
   res.render("urls_login", templateVars);
 });
@@ -138,7 +138,7 @@ app.get('/login', (req, res) => {
 /* POST REQUEST ROUTING */
 
 app.post("/urls/:shortURL/delete", (req, res) => {
-  const userID = req.cookies["user_id"];// check for cookie and returns userID
+  const userID = req.session.user_id;// check for cookie and returns userID
   if (!userID) {
     res.redirect('/urls');
   } else {
@@ -149,7 +149,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 
 app.post("/urls", (req, res) => {
   // console.log(req.body);  // Log the POST request body to the console
-  const userID = req.cookies["user_id"];// check for cookie and returns userID
+  const userID = req.session.user_id;// check for cookie and returns userID
   // console.log('uderID', userID);
   if (!userID) {
     res.redirect('/urls');
@@ -166,7 +166,7 @@ app.post("/urls", (req, res) => {
 
 app.post("/urls/:id", (req, res) => {
   // console.log(req.body);  // Log the POST request body to the console
-  const userID = req.cookies["user_id"];// check for cookie and returns userID
+  const userID = req.session.user_id;// check for cookie and returns userID
   if (!userID) {
     res.redirect('/urls');
   } else {
@@ -189,15 +189,18 @@ app.post('/login', (req, res) => {
     res.status(403).send('Error: Email address could not be found.');
   } else if (!bcrypt.compareSync(inputPassword, users[existingUserID].password)) {
     res.status(403).send('Error: Incorrect password.');
-  } else if (bcrypt.compareSync(inputPassword, users[existingUserID].password)) {
+  } else {
     // login success!
-    res.cookie('user_id', existingUserID);
+    // res.cookie('user_id', existingUserID);
+    // eslint-disable-next-line camelcase
+    req.session.user_id = existingUserID;
     res.redirect('/urls');
   }
 });
 
 app.post('/logout', (req, res) => {
-  res.clearCookie('user_id');
+  // res.clearCookie('user_id');
+  req.session = null;
   res.redirect('/urls');
 });
 
@@ -214,6 +217,7 @@ app.post('/register', (req, res) => {
   users[newUserID].email = req.body["email"];
   users[newUserID].password = bcrypt.hashSync(req.body["password"], 10);
   // console.log(users);
-  res.cookie('user_id', newUserID);
+  // eslint-disable-next-line camelcase
+  req.session.user_id = newUserID;
   res.redirect('/urls');
 });
