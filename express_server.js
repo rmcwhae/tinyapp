@@ -136,7 +136,6 @@ app.post("/urls/:id", (req, res) => {
 });
 
 app.post('/login', (req, res) => {
-  // res.cookie('username', req.body["username"]);
   let inputEmail = req.body["email"];
   let inputPassword = req.body["password"];
   let existingUserID = '';
