@@ -22,9 +22,9 @@ app.listen(PORT, () => {
 /* "DATABASES" (notice quotes…) */
 
 const urlDatabase = {
-  "b2xVn2": { longURL: "http://www.lighthouselabs.ca", userID: "x43d4r" },
-  "9sm5xK": { longURL: "http://www.google.com", userID: "x43d4r"},
-  "57fh37": { longURL: "http://www.engadget.com", userID: "gt7574"}
+  "b2xVn2": { longURL: "http://www.lighthouselabs.ca", userID: "x43d4r", visits: 0 },
+  "9sm5xK": { longURL: "http://www.google.com", userID: "x43d4r", visits: 0 },
+  "57fh37": { longURL: "http://www.engadget.com", userID: "gt7574", visits: 0 }
 };
 
 const users = {
@@ -65,7 +65,7 @@ const urlsForUser = function(id) {
   const ret = {};
   for (let url in urlDatabase) {
     if (id === urlDatabase[url].userID) {
-      ret[url] = { "longURL": urlDatabase[url].longURL };
+      ret[url] = { "longURL": urlDatabase[url].longURL, visits: urlDatabase[url].visits };
     }
   }
   return ret;
@@ -83,7 +83,11 @@ const validShortUrl = function(shortURL) {
 /* GET REQUEST ROUTING */
 
 app.get("/", (req, res) => {
-  res.send("Hello!");
+  if (!req.session.user_id) {
+    res.redirect('/login');
+  } else {
+    res.redirect('/urls');
+  }
 });
 
 app.get("/urls.json", (req, res) => {
@@ -99,7 +103,7 @@ app.get("/urls", (req, res) => {
   let userID = req.session.user_id;
   let templateVars = {
     user: users[userID],
-    urls: urlsForUser(userID)
+    urls: urlsForUser(userID),
   };
   res.render("urls_index", templateVars);
 });
@@ -123,7 +127,8 @@ app.get("/urls/:shortURL", (req, res) => {
     let templateVars = {
       shortURL: givenShortURL,
       longURL: urlDatabase[givenShortURL].longURL,
-      user: users[req.session.user_id]
+      user: users[req.session.user_id],
+      visits: urlDatabase[givenShortURL].visits
     };
     res.render("urls_show", templateVars);
   }
@@ -135,6 +140,8 @@ app.get("/u/:shortURL", (req, res) => {
     res.status(403).send('Error: Invalid Short URL.');
   } else {
     const longURL = urlDatabase[givenShortURL].longURL;
+    //update visits count
+    urlDatabase[givenShortURL].visits++;
     res.redirect(longURL);
   }
 });
