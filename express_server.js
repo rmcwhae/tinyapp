@@ -20,7 +20,18 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
-const users = {};
+const users = {
+  "userRandomID": {
+    id: "userRandomID",
+    email: "user@example.com",
+    password: "purple-monkey-dinosaur"
+  },
+  "user2RandomID": {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: "dishwasher-funk"
+  }
+};
 
 /* FUNCTION DEFINITIONS */
 
@@ -125,13 +136,29 @@ app.post("/urls/:id", (req, res) => {
 });
 
 app.post('/login', (req, res) => {
-  res.cookie('username', req.body["username"]);
-  res.redirect('/urls');
+  // res.cookie('username', req.body["username"]);
+  let inputEmail = req.body["email"];
+  let inputPassword = req.body["password"];
+  let existingUserID = '';
+  for (let userID in users) {
+    if (users[userID].email === inputEmail) {
+      existingUserID = userID;
+    }
+  }
+  // console.log(existingUserID);
+  if (!checkForExistingEmail(inputEmail, users)) {
+    res.status(403).send('Error: Email address could not be found.');
+  } else if (inputPassword !== users[existingUserID].password) {
+    res.status(403).send('Error: Incorrect password.');
+  } else {
+    //success!
+    res.cookie('user_id', existingUserID);
+    res.redirect('/urls');
+  }
 });
 
 app.post('/logout', (req, res) => {
-  // req.cookies["username"]
-  res.clearCookie('username');
+  res.clearCookie('user_id');
   res.redirect('/urls');
 });
 
