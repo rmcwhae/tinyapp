@@ -1,3 +1,4 @@
+/* SERVER INITIALIZATION */
 const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
@@ -8,10 +9,20 @@ app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser());
 
+app.listen(PORT, () => {
+  console.log(`Example app listening on port ${PORT}!`);
+});
+
+/* "DATABASES" (notice quotes…) */
+
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
+
+const users = {};
+
+/* FUNCTION DEFINITIONS */
 
 const generateRandomString = function() {// adapted from https://stackoverflow.com/questions/1349404/generate-random-string-characters-in-javascript
   let ret = "";
@@ -23,11 +34,7 @@ const generateRandomString = function() {// adapted from https://stackoverflow.c
   return ret;
 };
 
-app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}!`);
-});
-
-/* GET REQUESTS */
+/* GET REQUEST ROUTING */
 
 app.get("/", (req, res) => {
   res.send("Hello!");
@@ -78,7 +85,7 @@ app.get('/register', (req, res) => {
   res.render("urls_register", templateVars);
 });
 
-/* POST REQUESTS */
+/* POST REQUEST ROUTING */
 
 app.post("/urls/:shortURL/delete", (req, res) => {
   // delete from object
