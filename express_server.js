@@ -55,6 +55,16 @@ const checkForExistingEmail = function(emailToCheck, objectToCheckIn) {
   return false;
 };
 
+const urlsForUser = function(id) {
+  const ret = {};
+  for (let url in urlDatabase) {
+    if (id === urlDatabase[url].userID) {
+      ret[url] = { "longURL": urlDatabase[url].longURL };
+    }
+  }
+  return ret;
+};
+
 /* GET REQUEST ROUTING */
 
 app.get("/", (req, res) => {
@@ -70,9 +80,11 @@ app.get("/hello", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
+  //filter stuff here
+  let userID = req.cookies["user_id"];
   let templateVars = {
-    urls: urlDatabase,
-    user: users[req.cookies["user_id"]]
+    user: users[userID],
+    urls: urlsForUser(userID)
   };
   res.render("urls_index", templateVars);
 });
@@ -83,14 +95,15 @@ app.get("/urls/new", (req, res) => {
   };
   if (!templateVars.user) {
     res.redirect('/login');
+  } else {
+    res.render("urls_new", templateVars);
   }
-  res.render("urls_new", templateVars);
 });
 
 app.get("/urls/:shortURL", (req, res) => {
   let templateVars = {
     shortURL: req.params.shortURL,
-    longURL: urlDatabase[req.params.shortURL],
+    longURL: urlDatabase[req.params.shortURL].longURL,
     user: users[req.cookies["user_id"]]
   };
   res.render("urls_show", templateVars);
@@ -98,7 +111,7 @@ app.get("/urls/:shortURL", (req, res) => {
 
 app.get("/u/:shortURL", (req, res) => {
   // console.log(urlDatabase[req.params.shortURL]);
-  const longURL = urlDatabase[req.params.shortURL];
+  const longURL = urlDatabase[req.params.shortURL].longURL;
   res.redirect(longURL);
 });
 
