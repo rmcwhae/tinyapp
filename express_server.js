@@ -5,12 +5,13 @@ const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
 const cookieSession = require('cookie-session');
 const bcrypt = require('bcrypt');
+const serverStartTime = new Date();
 
 app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieSession({
   name: 'session',
-  keys: ['key1', 'key2'],
+  keys: ['key1acnbcbbc', 'key2acnacnacn'],
   // Cookie Options
   maxAge: 24 * 60 * 60 * 1000 // 24 hours
 }));
@@ -22,9 +23,9 @@ app.listen(PORT, () => {
 /* "DATABASES" (notice quotes…) */
 
 const urlDatabase = {
-  "b2xVn2": { longURL: "http://www.lighthouselabs.ca", userID: "x43d4r", visits: 0 },
-  "9sm5xK": { longURL: "http://www.google.com", userID: "x43d4r", visits: 0 },
-  "57fh37": { longURL: "http://www.engadget.com", userID: "gt7574", visits: 0 }
+  "b2xVn2": { longURL: "http://www.lighthouselabs.ca", userID: "x43d4r", visits: 0, date: serverStartTime },
+  "9sm5xK": { longURL: "http://www.google.com", userID: "x43d4r", visits: 0, date: serverStartTime },
+  "57fh37": { longURL: "http://www.engadget.com", userID: "gt7574", visits: 0, date: serverStartTime }
 };
 
 const users = {
@@ -65,7 +66,7 @@ const urlsForUser = function(id) {
   const ret = {};
   for (let url in urlDatabase) {
     if (id === urlDatabase[url].userID) {
-      ret[url] = { "longURL": urlDatabase[url].longURL, visits: urlDatabase[url].visits };
+      ret[url] = { "longURL": urlDatabase[url].longURL, visits: urlDatabase[url].visits, date: urlDatabase[url].date };
     }
   }
   return ret;
@@ -128,7 +129,8 @@ app.get("/urls/:shortURL", (req, res) => {
       shortURL: givenShortURL,
       longURL: urlDatabase[givenShortURL].longURL,
       user: users[req.session.user_id],
-      visits: urlDatabase[givenShortURL].visits
+      visits: urlDatabase[givenShortURL].visits,
+      date: urlDatabase[givenShortURL].date,
     };
     res.render("urls_show", templateVars);
   }
@@ -183,6 +185,8 @@ app.post("/urls", (req, res) => {
     let newURLObj = {};
     newURLObj.longURL = req.body["longURL"];
     newURLObj.userID = userID;
+    newURLObj.visits = 0;
+    newURLObj.date = new Date();
     urlDatabase[newshortID] = newURLObj;
     // console.log(urlDatabase);
     res.redirect('/urls/' + newshortID);
