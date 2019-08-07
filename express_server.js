@@ -34,6 +34,15 @@ const generateRandomString = function() {// adapted from https://stackoverflow.c
   return ret;
 };
 
+const checkForExistingEmail = function(emailToCheck, objectToCheckIn) {
+  for (let userID in objectToCheckIn) {
+    if (emailToCheck === objectToCheckIn[userID]["email"]) {
+      return true;
+    }
+  }
+  return false;
+};
+
 /* GET REQUEST ROUTING */
 
 app.get("/", (req, res) => {
