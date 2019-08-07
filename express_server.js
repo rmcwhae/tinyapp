@@ -132,23 +132,42 @@ app.get('/login', (req, res) => {
 /* POST REQUEST ROUTING */
 
 app.post("/urls/:shortURL/delete", (req, res) => {
-  delete urlDatabase[req.params.shortURL];
-  res.redirect('/urls');
+  const userID = req.cookies["user_id"];// check for cookie and returns userID
+  if (!userID) {
+    res.redirect('/urls');
+  } else {
+    delete urlDatabase[req.params.shortURL];
+    res.redirect('/urls');
+  }
 });
 
 app.post("/urls", (req, res) => {
   // console.log(req.body);  // Log the POST request body to the console
-  let newshortID = generateRandomString();
-  urlDatabase[newshortID] = req.body["longURL"];
-  // console.log(urlDatabase);
-  res.redirect('/urls/' + newshortID);
+  const userID = req.cookies["user_id"];// check for cookie and returns userID
+  // console.log('uderID', userID);
+  if (!userID) {
+    res.redirect('/urls');
+  } else {
+    let newshortID = generateRandomString();
+    let newURLObj = {};
+    newURLObj.longURL = req.body["longURL"];
+    newURLObj.userID = userID;
+    urlDatabase[newshortID] = newURLObj;
+    // console.log(urlDatabase);
+    res.redirect('/urls/' + newshortID);
+  }
 });
 
 app.post("/urls/:id", (req, res) => {
   // console.log(req.body);  // Log the POST request body to the console
-  let shortcode = req.params.id;
-  urlDatabase[shortcode] = req.body["longURL"];//update previous long URL with data from form
-  res.redirect('/urls/');
+  const userID = req.cookies["user_id"];// check for cookie and returns userID
+  if (!userID) {
+    res.redirect('/urls');
+  } else {
+    let shortcode = req.params.id;
+    urlDatabase[shortcode].longURL = req.body["longURL"];//update previous long URL with data from form
+    res.redirect('/urls/');
+  }
 });
 
 app.post('/login', (req, res) => {
