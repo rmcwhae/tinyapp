@@ -13,7 +13,7 @@
       <div class="card-body">
         <h5 class="card-title">TinyURL for: <%= longURL %></h5>
         <p class="card-text">Short URL: <a href="/u/<%= shortURL %>"><%= shortURL %></a></p>
-        <p class="card-text">Visits: <%= visits %></p>
+        <p class="card-text">Visits: <%= visits %> &nbsp;&nbsp;&nbsp; Unique Visits: <%= uniqueVisits %></p>
         <p class="card-text">Date added: <%= date %></p>
       </div>
     <div class="card-footer text-muted">
@@ -25,6 +25,25 @@
       </form>
     </div>
   </div>
+  <main style="margin: 1em;">
+      <h3>All Visits to <a href="/u/<%= shortURL %>"><%= shortURL %></a></h3>
+      <table class="table">
+        <thead>
+          <tr>
+            <th scope="col">Visitor ID</th>
+            <th scope="col">Visit Time</th>
+          </tr>
+          </thead>
+        <tbody>
+      <% for (let visit in allVisits) { %>
+        <tr>
+          <td><%= allVisits[visit].visitorId %></td>
+          <td><%= allVisits[visit].visitDate %></td>
+        </tr>
+        <% }%>
+        </tbody>
+      </table>
+  </main>
   <!-- Bootstrap JS -->
   <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
