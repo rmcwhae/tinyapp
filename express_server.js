@@ -26,8 +26,8 @@ app.listen(PORT, () => {
 /* "DATABASES" (notice quotes…) */
 
 const urlDatabase = {
-  "b2xVn2": { longURL: "http://www.lighthouselabs.ca", userID: "x43d4r", visits: 0, date: serverStartTime },
-  "9sm5xK": { longURL: "http://www.google.com", userID: "x43d4r", visits: 0, date: serverStartTime },
+  "b2xVn2": { longURL: "http://www.lighthouselabs.ca", userID: "x43d4r", visits: 3, date: serverStartTime },
+  "9sm5xK": { longURL: "http://www.google.com", userID: "x43d4r", visits: 1, date: serverStartTime },
   "57fh37": { longURL: "http://www.engadget.com", userID: "gt7574", visits: 0, date: serverStartTime }
 };
 
