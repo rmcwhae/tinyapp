@@ -1,10 +1,11 @@
 /* SERVER INITIALIZATION */
 const express = require("express");
 const app = express();
-const PORT = 8080; // default port 8080
+const PORT = 8080;
 const bodyParser = require("body-parser");
 const cookieSession = require('cookie-session');
 const bcrypt = require('bcrypt');
+const { generateRandomString, getUserByEmail, urlsForUser, validShortUrl } = require('./helpers');
 const serverStartTime = new Date();
 
 app.set("view engine", "ejs");
@@ -41,47 +42,6 @@ const users = {
   }
 };//user a pw: stuff; user b pw: things
 
-/* FUNCTION DECLARATIONS */
-
-const generateRandomString = function() {// adapted from https://stackoverflow.com/questions/1349404/generate-random-string-characters-in-javascript
-  let ret = "";
-  let length = 6;//could also pass in as argument
-  let characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  for (let i = 0; i < length; i++) {
-    ret += characters.charAt(Math.floor(Math.random() * characters.length));
-  }
-  return ret;
-};
-
-const getUserByEmail = function(emailToCheck, objectToCheckIn) {
-  let ret = '';
-  for (let userID in objectToCheckIn) {
-    if (emailToCheck === objectToCheckIn[userID]["email"]) {
-      ret = userID;
-    }
-  }
-  return ret;
-};
-
-const urlsForUser = function(id, objectToCheckIn) {
-  const ret = {};
-  for (let url in objectToCheckIn) {
-    if (id === objectToCheckIn[url].userID) {
-      ret[url] = { "longURL": objectToCheckIn[url].longURL, visits: objectToCheckIn[url].visits, date: objectToCheckIn[url].date };
-    }
-  }
-  return ret;
-};
-
-const validShortUrl = function(shortURL, objectToCheckIn) {
-  for (let url in objectToCheckIn) {
-    if (shortURL === url) {
-      return true;
-    }
-  }
-  return false;
-};
-
 /* GET REQUEST ROUTING */
 
 app.get("/", (req, res) => {
@@ -101,7 +61,6 @@ app.get("/hello", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  //filter stuff here
   let userID = req.session.user_id;
   let templateVars = {
     user: users[userID],
@@ -123,7 +82,7 @@ app.get("/urls/new", (req, res) => {
 
 app.get("/urls/:shortURL", (req, res) => {
   let givenShortURL = req.params.shortURL;
-  const userID = req.session.user_id;// check for cookie and returns userID
+  const userID = req.session.user_id;
   if (!userID) {
     res.status(403).send('Error: You must be logged in to view this page.');
   } else if (!validShortUrl(givenShortURL, urlDatabase)) {
@@ -146,7 +105,6 @@ app.get("/u/:shortURL", (req, res) => {
     res.status(403).send('Error: Invalid Short URL.');
   } else {
     const longURL = urlDatabase[givenShortURL].longURL;
-    //update visits count
     urlDatabase[givenShortURL].visits++;
     res.redirect(longURL);
   }
@@ -169,7 +127,7 @@ app.get('/login', (req, res) => {
 /* POST REQUEST ROUTING */
 
 app.post("/urls/:shortURL/delete", (req, res) => {
-  const userID = req.session.user_id;// check for cookie and returns userID
+  const userID = req.session.user_id;
   if (!userID) {
     res.redirect('/urls');
   } else {
@@ -179,9 +137,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
-  // console.log(req.body);  // Log the POST request body to the console
-  const userID = req.session.user_id;// check for cookie and returns userID
-  // console.log('uderID', userID);
+  const userID = req.session.user_id;
   if (!userID) {
     res.status(403).send('Error: You must be logged in to view this page.');
   } else {
@@ -198,13 +154,12 @@ app.post("/urls", (req, res) => {
 });
 
 app.post("/urls/:id", (req, res) => {
-  // console.log(req.body);  // Log the POST request body to the console
-  const userID = req.session.user_id;// check for cookie and returns userID
+  const userID = req.session.user_id;
   if (!userID) {
     res.redirect('/urls');
   } else {
     let shortcode = req.params.id;
-    urlDatabase[shortcode].longURL = req.body["longURL"];//update previous long URL with data from form
+    urlDatabase[shortcode].longURL = req.body["longURL"];//update previous long URL with new long URL
     res.redirect('/urls/');
   }
 });
@@ -213,19 +168,12 @@ app.post('/login', (req, res) => {
   let inputEmail = req.body["email"];
   let inputPassword = req.body["password"];
   let existingUserID = getUserByEmail(inputEmail, users);
-  // let existingUserID = '';
-  // for (let userID in users) {
-  //   if (users[userID].email === inputEmail) {
-  //     existingUserID = userID;
-  //   }
-  // }
   if (!existingUserID) {
     res.status(403).send('Error: Email address could not be found.');
   } else if (!bcrypt.compareSync(inputPassword, users[existingUserID].password)) {
     res.status(403).send('Error: Incorrect password.');
   } else {
     // login success!
-    // res.cookie('user_id', existingUserID);
     // eslint-disable-next-line camelcase
     req.session.user_id = existingUserID;
     res.redirect('/urls');
@@ -233,7 +181,6 @@ app.post('/login', (req, res) => {
 });
 
 app.post('/logout', (req, res) => {
-  // res.clearCookie('user_id');
   req.session = null;
   res.redirect('/urls');
 });
