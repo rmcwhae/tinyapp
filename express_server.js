@@ -3,6 +3,7 @@ const express = require("express");
 const app = express();
 const PORT = 8080;
 const bodyParser = require("body-parser");
+const cookieParser = require('cookie-parser');
 const cookieSession = require('cookie-session');
 const methodOverride = require('method-override');
 const bcrypt = require('bcrypt');
@@ -11,6 +12,7 @@ const serverStartTime = new Date();
 
 app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({extended: true}));
+app.use(cookieParser());
 app.use(cookieSession({
   name: 'session',
   keys: ['key1acnbcbbc', 'key2acnacnacn'],
@@ -19,16 +21,13 @@ app.use(cookieSession({
 }));
 app.use(methodOverride('_method'));
 
-app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}!`);
-});
 
 /* "DATABASES" (notice quotes…) */
 
 const urlDatabase = {
-  "b2xVn2": { longURL: "http://www.lighthouselabs.ca", userID: "x43d4r", visits: 3, date: serverStartTime },
-  "9sm5xK": { longURL: "http://www.google.com", userID: "x43d4r", visits: 1, date: serverStartTime },
-  "57fh37": { longURL: "http://www.engadget.com", userID: "gt7574", visits: 0, date: serverStartTime }
+  "b2xVn2": { longURL: "http://www.lighthouselabs.ca", userID: "x43d4r", totalVisits: 3, uniqueVisits: 0, date: serverStartTime },
+  "9sm5xK": { longURL: "http://www.google.com", userID: "x43d4r", totalVisits: 3, uniqueVisits: 0, date: serverStartTime },
+  "57fh37": { longURL: "http://www.engadget.com", userID: "gt7574", totalVisits: 3, uniqueVisits: 0, date: serverStartTime }
 };
 
 const users = {
@@ -65,10 +64,6 @@ app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
 
-app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n");
-});
-
 app.get("/urls", (req, res) => {
   let userID = req.session.user_id;
   let templateVars = {
@@ -101,10 +96,11 @@ app.get("/urls/:shortURL", (req, res) => {
       shortURL: givenShortURL,
       longURL: urlDatabase[givenShortURL].longURL,
       user: users[userID],
-      visits: urlDatabase[givenShortURL].visits,
+      uniqueVisits: urlDatabase[givenShortURL].uniqueVisits,
       date: urlDatabase[givenShortURL].date,
+                            
       allVisits: filterVisitsByShortURL(givenShortURL, allVisits),
-      uniqueVisits: filterVisitsByShortURL(givenShortURL, allVisits, 1)
+      visits: urlDatabase[givenShortURL].totalVisits
     };//filter allVisits before sending sending in as a template var
     res.render("urls_show", templateVars);
   }
@@ -116,8 +112,38 @@ app.get("/u/:shortURL", (req, res) => {
     res.status(403).send('Error: Invalid Short URL.');
   } else {
     const longURL = urlDatabase[givenShortURL].longURL;
-    urlDatabase[givenShortURL].visits++;
-    //create cookie here
+    // add a newVisit entry
+    let newVisit = {};
+    let newVisitID = generateRandomString();
+    newVisit.visitorId = newVisitID;
+    newVisit.visitDate = new Date();
+    newVisit.shortURLVisited = givenShortURL;
+    allVisits[newVisitID] = newVisit;
+    // console.log('cookie', req.cookies);
+    
+    if (!req.cookies[givenShortURL]) {// no cookie from previous visits
+      res.cookie(givenShortURL, new Date());
+      urlDatabase[givenShortURL].uniqueVisits++;
+      // console.log('A gets executed');
+      // console.log(req.session);
+    } else { //let's see how old this cookie is
+      let now = new Date();
+      let lastVisitTimeFromCookie = req.cookies[givenShortURL];// bad idea to store info in cookies and not server side, but this is just an exercise
+      // below code adapted from https://stackoverflow.com/questions/7709803/javascript-get-minutes-between-two-dates
+      let dateDifference = Date.parse(now) - Date.parse(lastVisitTimeFromCookie);
+      let dateDifferenceInMinutes = Math.round(((dateDifference % 86400000) % 3600000) / 60000);
+      // console.log('cookie timestamp:', lastVisitTimeFromCookie);
+      // console.log('now:', Date.parse(now));
+      // console.log('date difference', dateDifferenceInMinutes);
+      if (dateDifferenceInMinutes > 30) {// for the same person/device visiting a website (existing cookie), give 30 min timeout before considering unique visits per https://matomo.org/faq/general/faq_21418/
+        res.cookie(givenShortURL, new Date());
+        urlDatabase[givenShortURL].uniqueVisits++;
+      }
+      res.cookie(givenShortURL, new Date());
+      // console.log('B gets executed');
+    }
+    // console.log(allVisits);
+    urlDatabase[givenShortURL].totalVisits++;
     res.redirect(longURL);
   }
 });
@@ -157,10 +183,10 @@ app.post("/urls", (req, res) => {
     let newURLObj = {};
     newURLObj.longURL = req.body["longURL"];
     newURLObj.userID = userID;
-    newURLObj.visits = 0;
+    newURLObj.totalVisits = 0;
+    newURLObj.uniqueVisits = 0;
     newURLObj.date = new Date();
     urlDatabase[newshortID] = newURLObj;
-    // console.log(urlDatabase);
     res.redirect('/urls/' + newshortID);
   }
 });
@@ -209,8 +235,13 @@ app.post('/register', (req, res) => {
   users[newUserID].id = newUserID;
   users[newUserID].email = req.body["email"];
   users[newUserID].password = bcrypt.hashSync(req.body["password"], 10);
-  // console.log(users);
   // eslint-disable-next-line camelcase
   req.session.user_id = newUserID;
   res.redirect('/urls');
+});
+
+/* RUN THE SERVER */
+
+app.listen(PORT, () => {
+  console.log(`Example app listening on port ${PORT}!`);
 });
