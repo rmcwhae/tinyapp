@@ -182,7 +182,7 @@ app.post("/urls", (req, res) => {
   const userID = req.session.user_id;// check for cookie and returns userID
   // console.log('uderID', userID);
   if (!userID) {
-    res.redirect('/urls');
+    res.status(403).send('Error: You must be logged in to view this page.');
   } else {
     let newshortID = generateRandomString();
     let newURLObj = {};
