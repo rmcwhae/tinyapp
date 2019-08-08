@@ -226,18 +226,18 @@ app.post('/logout', (req, res) => {
 app.post('/register', (req, res) => {
   if (!req.body["password"] || !req.body["email"]) {
     res.status(400).send('All fields must be filled out. Please return to the previous page and enter all required form inputs.');
-  }
-  if (getUserByEmail(req.body["email"], users)) {
+  } else if (getUserByEmail(req.body["email"], users)) {
     res.status(400).send('Error: Email address has already been registered. Please return to the previous page and use a different email address');
+  } else {
+    let newUserID = generateRandomString();
+    users[newUserID] = {};
+    users[newUserID].id = newUserID;
+    users[newUserID].email = req.body["email"];
+    users[newUserID].password = bcrypt.hashSync(req.body["password"], 10);
+    // eslint-disable-next-line camelcase
+    req.session.user_id = newUserID;
+    res.redirect('/urls');
   }
-  let newUserID = generateRandomString();
-  users[newUserID] = {};
-  users[newUserID].id = newUserID;
-  users[newUserID].email = req.body["email"];
-  users[newUserID].password = bcrypt.hashSync(req.body["password"], 10);
-  // eslint-disable-next-line camelcase
-  req.session.user_id = newUserID;
-  res.redirect('/urls');
 });
 
 /* RUN THE SERVER */
