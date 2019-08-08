@@ -4,6 +4,7 @@ const app = express();
 const PORT = 8080;
 const bodyParser = require("body-parser");
 const cookieSession = require('cookie-session');
+const methodOverride = require('method-override');
 const bcrypt = require('bcrypt');
 const { generateRandomString, getUserByEmail, urlsForUser, validShortUrl } = require('./helpers');
 const serverStartTime = new Date();
@@ -16,6 +17,7 @@ app.use(cookieSession({
   // Cookie Options
   maxAge: 24 * 60 * 60 * 1000 // 24 hours
 }));
+app.use(methodOverride('_method'));
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
@@ -126,7 +128,7 @@ app.get('/login', (req, res) => {
 
 /* POST REQUEST ROUTING */
 
-app.post("/urls/:shortURL/delete", (req, res) => {
+app.delete("/urls/:shortURL/delete", (req, res) => {
   const userID = req.session.user_id;
   if (!userID) {
     res.redirect('/urls');
@@ -153,7 +155,7 @@ app.post("/urls", (req, res) => {
   }
 });
 
-app.post("/urls/:id", (req, res) => {
+app.put("/urls/:id", (req, res) => {
   const userID = req.session.user_id;
   if (!userID) {
     res.redirect('/urls');
