@@ -122,13 +122,16 @@ app.get("/urls/new", (req, res) => {
 
 app.get("/urls/:shortURL", (req, res) => {
   let givenShortURL = req.params.shortURL;
-  if (!validShortUrl(givenShortURL)) {
+  const userID = req.session.user_id;// check for cookie and returns userID
+  if (!userID) {
+    res.status(403).send('Error: You must be logged in to view this page.');
+  } else if (!validShortUrl(givenShortURL)) {
     res.status(403).send('Error: Invalid Short URL.');
   } else {
     let templateVars = {
       shortURL: givenShortURL,
       longURL: urlDatabase[givenShortURL].longURL,
-      user: users[req.session.user_id],
+      user: users[userID],
       visits: urlDatabase[givenShortURL].visits,
       date: urlDatabase[givenShortURL].date,
     };
