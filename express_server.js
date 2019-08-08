@@ -6,7 +6,7 @@ const bodyParser = require("body-parser");
 const cookieSession = require('cookie-session');
 const methodOverride = require('method-override');
 const bcrypt = require('bcrypt');
-const { generateRandomString, getUserByEmail, urlsForUser, validShortUrl } = require('./helpers');
+const { generateRandomString, getUserByEmail, urlsForUser, validShortUrl, filterVisitsByShortURL } = require('./helpers');
 const serverStartTime = new Date();
 
 app.set("view engine", "ejs");
@@ -43,6 +43,13 @@ const users = {
     password: "$2b$10$LemPBJdGHiuYS5gz1LmrLeAx1TZa4mTyqK5R61OmRQvMlobgMq4Oy"
   }
 };//user a pw: stuff; user b pw: things
+
+const allVisits = {
+  'fghfy8': { visitorId: 'fghfy8', visitDate: serverStartTime, shortURLVisited: "b2xVn2" },
+  '9ud75h': { visitorId: '9ud75h', visitDate: serverStartTime, shortURLVisited: "b2xVn2" },
+  'f85ur7': { visitorId: 'f85ur7', visitDate: serverStartTime, shortURLVisited: "b2xVn2" },
+  '85ht7r': { visitorId: '85ht7r', visitDate: serverStartTime, shortURLVisited: "9sm5xK" }
+};
 
 /* GET REQUEST ROUTING */
 
@@ -96,7 +103,9 @@ app.get("/urls/:shortURL", (req, res) => {
       user: users[userID],
       visits: urlDatabase[givenShortURL].visits,
       date: urlDatabase[givenShortURL].date,
-    };
+      allVisits: filterVisitsByShortURL(givenShortURL, allVisits),
+      uniqueVisits: filterVisitsByShortURL(givenShortURL, allVisits, 1)
+    };//filter allVisits before sending sending in as a template var
     res.render("urls_show", templateVars);
   }
 });
@@ -108,6 +117,7 @@ app.get("/u/:shortURL", (req, res) => {
   } else {
     const longURL = urlDatabase[givenShortURL].longURL;
     urlDatabase[givenShortURL].visits++;
+    //create cookie here
     res.redirect(longURL);
   }
 });
