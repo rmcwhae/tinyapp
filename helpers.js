@@ -21,13 +21,13 @@ const getUserByEmail = function(emailToCheck, objectToCheckIn) {
 };
 
 const urlsForUser = function(id, objectToCheckIn) {
-  const ret = {};
+  const filteredURLs = {};
   for (let url in objectToCheckIn) {
     if (id === objectToCheckIn[url].userID) {
-      ret[url] = { "longURL": objectToCheckIn[url].longURL, visits: objectToCheckIn[url].visits, date: objectToCheckIn[url].date };
+      filteredURLs[url] = objectToCheckIn[url];
     }
   }
-  return ret;
+  return filteredURLs;
 };
 
 const validShortUrl = function(shortURL, objectToCheckIn) {
@@ -39,9 +39,21 @@ const validShortUrl = function(shortURL, objectToCheckIn) {
   return false;
 };
 
+const filterVisitsByShortURL = function(shortURLid, objectToCheckIn) {
+  //implement filter logic
+  let filteredVisits = {};
+  for (let visit in objectToCheckIn) {
+    if (objectToCheckIn[visit].shortURLVisited === shortURLid) {
+      filteredVisits[visit] = objectToCheckIn[visit];
+    }
+  }
+  return filteredVisits;
+};
+
 module.exports = {
   generateRandomString,
   getUserByEmail,
   urlsForUser,
-  validShortUrl
+  validShortUrl,
+  filterVisitsByShortURL
 };
