@@ -11,7 +11,7 @@ const generateRandomString = function() {// adapted from https://stackoverflow.c
 };
 
 const getUserByEmail = function(emailToCheck, objectToCheckIn) {
-  let ret = '';
+  let ret = undefined;
   for (let userID in objectToCheckIn) {
     if (emailToCheck === objectToCheckIn[userID]["email"]) {
       ret = userID;
