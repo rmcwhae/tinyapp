@@ -126,8 +126,9 @@ app.get("/u/:shortURL", (req, res) => {
       if (dateDifferenceInMinutes > 30) { // for an existing cookie, give 30 min timeout before considering a new unique visit; per https://matomo.org/faq/general/faq_21418/
         res.cookie(givenShortURL, new Date());
         urlDatabase[givenShortURL].uniqueVisits++;
+      } else {
+        res.cookie(givenShortURL, new Date());
       }
-      res.cookie(givenShortURL, new Date());
     }
     urlDatabase[givenShortURL].totalVisits++;
     res.redirect(longURL);
