@@ -4,9 +4,16 @@ TinyApp is a full-stack web application built with Node.js and Express that allo
 
 ## Final Product
 
+### Register Page
+
 !["Screenshot of register page"](./docs/register-page.png)
-!["Screenshot of URLs page (logged in)"](./docs/single-url-page.png)
-!["Screenshot of single URL page (logged in)"](./docs/urls-logged-in-page.png)
+
+### List of Saved URLs
+
+!["Screenshot of URLs page (logged in)"](./docs/urls-logged-in-page.png)
+
+### A Single URL
+!["Screenshot of single URL page (logged in)"](./docs/single-url-page.png)
 
 ## Dependencies
 
