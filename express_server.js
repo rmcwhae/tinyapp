@@ -21,7 +21,6 @@ app.use(cookieSession({
 }));
 app.use(methodOverride('_method'));
 
-
 /* "DATABASES" (notice quotes…) */
 
 const urlDatabase = {
@@ -41,7 +40,7 @@ const users = {
     email: "russell@b.com",
     password: "$2b$10$LemPBJdGHiuYS5gz1LmrLeAx1TZa4mTyqK5R61OmRQvMlobgMq4Oy"
   }
-};//user a pw: stuff; user b pw: things
+};//user a pw plaintext: stuff; user b pw plaintext: things
 
 const allVisits = {
   'fghfy8': { visitorId: 'fghfy8', visitDate: serverStartTime, shortURLVisited: "b2xVn2" },
@@ -91,6 +90,8 @@ app.get("/urls/:shortURL", (req, res) => {
     res.status(403).send('Error: You must be logged in to view this page.');
   } else if (!validShortUrl(givenShortURL, urlDatabase)) {
     res.status(403).send('Error: Invalid Short URL.');
+  } else if (userID !== urlDatabase[req.params.shortURL].userID) {
+    res.status(403).send('Error: You do not have access to this short URL.');
   } else {
     let templateVars = {
       shortURL: givenShortURL,
@@ -149,10 +150,15 @@ app.get("/u/:shortURL", (req, res) => {
 });
 
 app.get('/register', (req, res) => {
-  let templateVars = {
-    user: users[req.session.user_id]
-  };
-  res.render("urls_register", templateVars);
+  const userID = req.session.user_id;
+  if (userID) {
+    res.redirect('/urls');
+  } else {
+    let templateVars = {
+      user: users[req.session.user_id]
+    };
+    res.render("urls_register", templateVars);
+  }
 });
 
 app.get('/login', (req, res) => {
@@ -167,7 +173,9 @@ app.get('/login', (req, res) => {
 app.delete("/urls/:shortURL/delete", (req, res) => {
   const userID = req.session.user_id;
   if (!userID) {
-    res.redirect('/urls');
+    res.status(403).send('Error: You must be logged in to view this page.');
+  } else if (userID !== urlDatabase[req.params.shortURL].userID) {
+    res.status(403).send('Error: You do not have access to this short URL.');
   } else {
     delete urlDatabase[req.params.shortURL];
     res.redirect('/urls');
@@ -194,8 +202,12 @@ app.post("/urls", (req, res) => {
 app.put("/urls/:id", (req, res) => {
   const userID = req.session.user_id;
   if (!userID) {
-    res.redirect('/urls');
+    res.status(403).send('Error: You must be logged in to perform this action.');
+  } else if (userID !== urlDatabase[req.params.id].userID) {
+    res.status(403).send('Error: You do not have access to this short URL.');
   } else {
+    // console.log('userid', userID);
+    // console.log('urlDatabase[req.params.id].userID', urlDatabase[req.params.id].userID);
     let shortcode = req.params.id;
     urlDatabase[shortcode].longURL = req.body["longURL"];//update previous long URL with new long URL
     res.redirect('/urls/');
@@ -206,7 +218,9 @@ app.post('/login', (req, res) => {
   let inputEmail = req.body["email"];
   let inputPassword = req.body["password"];
   let existingUserID = getUserByEmail(inputEmail, users);
-  if (!existingUserID) {
+  if (!inputEmail || !inputPassword) {
+    res.status(403).send('Error: Both fields in the form are required.');
+  } else if (!existingUserID) {
     res.status(403).send('Error: Email address could not be found.');
   } else if (!bcrypt.compareSync(inputPassword, users[existingUserID].password)) {
     res.status(403).send('Error: Incorrect password.');
