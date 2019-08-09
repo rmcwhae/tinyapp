@@ -40,7 +40,7 @@ const users = {
     email: "russell@b.com",
     password: "$2b$10$LemPBJdGHiuYS5gz1LmrLeAx1TZa4mTyqK5R61OmRQvMlobgMq4Oy"
   }
-};//user a pw plaintext: stuff; user b pw plaintext: things
+};// user a pw plaintext: stuff; user b pw plaintext: things
 
 const allVisits = {
   'fghfy8': { visitorId: 'fghfy8', visitDate: serverStartTime, shortURLVisited: "b2xVn2" },
@@ -108,23 +108,22 @@ app.get("/u/:shortURL", (req, res) => {
     res.status(403).send('Error: Invalid Short URL.');
   } else {
     const longURL = urlDatabase[givenShortURL].longURL;
-    // add a newVisit entry
-    let newVisit = {};
+    let newVisit = {}; // add a newVisit entry
     let newVisitID = generateRandomString();
     newVisit.visitorId = newVisitID;
     newVisit.visitDate = new Date();
     newVisit.shortURLVisited = givenShortURL;
     allVisits[newVisitID] = newVisit;
-    if (!req.cookies[givenShortURL]) {// no cookie from previous visits
+    if (!req.cookies[givenShortURL]) {
       res.cookie(givenShortURL, new Date());
       urlDatabase[givenShortURL].uniqueVisits++;
-    } else { //let's see how old this cookie is
+    } else { // let's see how old this cookie is
       let now = new Date();
-      let lastVisitTimeFromCookie = req.cookies[givenShortURL];// bad idea to store info in cookies and not server side, but this is just an exercise
+      let lastVisitTimeFromCookie = req.cookies[givenShortURL]; // bad idea to store info in cookies and not server side, but this is just an exercise
       // below code adapted from https://stackoverflow.com/questions/7709803/javascript-get-minutes-between-two-dates
       let dateDifference = Date.parse(now) - Date.parse(lastVisitTimeFromCookie);
       let dateDifferenceInMinutes = Math.round(((dateDifference % 86400000) % 3600000) / 60000);
-      if (dateDifferenceInMinutes > 30) {// for the same person/device visiting a website (existing cookie), give 30 min timeout before considering unique visits per https://matomo.org/faq/general/faq_21418/
+      if (dateDifferenceInMinutes > 30) { // for an existing cookie, give 30 min timeout before considering a new unique visit; per https://matomo.org/faq/general/faq_21418/
         res.cookie(givenShortURL, new Date());
         urlDatabase[givenShortURL].uniqueVisits++;
       }
@@ -193,7 +192,7 @@ app.put("/urls/:id", (req, res) => {
     res.status(403).send('Error: You do not have access to this short URL.');
   } else {
     let shortcode = req.params.id;
-    urlDatabase[shortcode].longURL = req.body["longURL"];//update previous long URL with new long URL
+    urlDatabase[shortcode].longURL = req.body["longURL"]; // update previous long URL with new long URL
     res.redirect('/urls/');
   }
 });
