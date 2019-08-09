@@ -99,7 +99,6 @@ app.get("/urls/:shortURL", (req, res) => {
       user: users[userID],
       uniqueVisits: urlDatabase[givenShortURL].uniqueVisits,
       date: urlDatabase[givenShortURL].date,
-                            
       allVisits: filterVisitsByShortURL(givenShortURL, allVisits),
       visits: urlDatabase[givenShortURL].totalVisits
     };
