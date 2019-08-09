@@ -102,7 +102,7 @@ app.get("/urls/:shortURL", (req, res) => {
                             
       allVisits: filterVisitsByShortURL(givenShortURL, allVisits),
       visits: urlDatabase[givenShortURL].totalVisits
-    };//filter allVisits before sending sending in as a template var
+    };
     res.render("urls_show", templateVars);
   }
 });
@@ -120,30 +120,21 @@ app.get("/u/:shortURL", (req, res) => {
     newVisit.visitDate = new Date();
     newVisit.shortURLVisited = givenShortURL;
     allVisits[newVisitID] = newVisit;
-    // console.log('cookie', req.cookies);
-    
     if (!req.cookies[givenShortURL]) {// no cookie from previous visits
       res.cookie(givenShortURL, new Date());
       urlDatabase[givenShortURL].uniqueVisits++;
-      // console.log('A gets executed');
-      // console.log(req.session);
     } else { //let's see how old this cookie is
       let now = new Date();
       let lastVisitTimeFromCookie = req.cookies[givenShortURL];// bad idea to store info in cookies and not server side, but this is just an exercise
       // below code adapted from https://stackoverflow.com/questions/7709803/javascript-get-minutes-between-two-dates
       let dateDifference = Date.parse(now) - Date.parse(lastVisitTimeFromCookie);
       let dateDifferenceInMinutes = Math.round(((dateDifference % 86400000) % 3600000) / 60000);
-      // console.log('cookie timestamp:', lastVisitTimeFromCookie);
-      // console.log('now:', Date.parse(now));
-      // console.log('date difference', dateDifferenceInMinutes);
       if (dateDifferenceInMinutes > 30) {// for the same person/device visiting a website (existing cookie), give 30 min timeout before considering unique visits per https://matomo.org/faq/general/faq_21418/
         res.cookie(givenShortURL, new Date());
         urlDatabase[givenShortURL].uniqueVisits++;
       }
       res.cookie(givenShortURL, new Date());
-      // console.log('B gets executed');
     }
-    // console.log(allVisits);
     urlDatabase[givenShortURL].totalVisits++;
     res.redirect(longURL);
   }
@@ -206,8 +197,6 @@ app.put("/urls/:id", (req, res) => {
   } else if (userID !== urlDatabase[req.params.id].userID) {
     res.status(403).send('Error: You do not have access to this short URL.');
   } else {
-    // console.log('userid', userID);
-    // console.log('urlDatabase[req.params.id].userID', urlDatabase[req.params.id].userID);
     let shortcode = req.params.id;
     urlDatabase[shortcode].longURL = req.body["longURL"];//update previous long URL with new long URL
     res.redirect('/urls/');
@@ -225,7 +214,6 @@ app.post('/login', (req, res) => {
   } else if (!bcrypt.compareSync(inputPassword, users[existingUserID].password)) {
     res.status(403).send('Error: Incorrect password.');
   } else {
-    // login success!
     // eslint-disable-next-line camelcase
     req.session.user_id = existingUserID;
     res.redirect('/urls');
