@@ -39,17 +39,12 @@ const validShortUrl = function(shortURL, objectToCheckIn) {
   return false;
 };
 
-const filterVisitsByShortURL = function(shortURLid, objectToCheckIn, countOnlyFlag) {
+const filterVisitsByShortURL = function(shortURLid, objectToCheckIn) {
   let filteredVisits = {};
-  let filteredCount = 0;
   for (let visit in objectToCheckIn) {
     if (objectToCheckIn[visit].shortURLVisited === shortURLid) {
       filteredVisits[visit] = objectToCheckIn[visit];
-      filteredCount++;
     }
-  }
-  if (countOnlyFlag) {
-    return filteredCount;
   }
   return filteredVisits;
 };
