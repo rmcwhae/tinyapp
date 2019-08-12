@@ -34,7 +34,7 @@ const urlsForUser = function(id, objectToCheckIn) {
   return filteredURLs;
 };
 
-const validShortUrl = function(shortURL, objectToCheckIn) {
+const isShortUrlValid = function(shortURL, objectToCheckIn) {
   for (let url in objectToCheckIn) {
     if (shortURL === url) {
       return true;
@@ -57,6 +57,6 @@ module.exports = {
   generateRandomString,
   getUserByEmail,
   urlsForUser,
-  validShortUrl,
+  isShortUrlValid,
   filterVisitsByShortURL
 };

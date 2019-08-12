@@ -11,7 +11,7 @@ const {
   generateRandomString,
   getUserByEmail,
   urlsForUser,
-  validShortUrl,
+  isShortUrlValid,
   filterVisitsByShortURL
 } = require('./helpers');
 const serverStartTime = new Date();
@@ -131,7 +131,7 @@ app.get('/urls/:shortURL', (req, res) => {
   const userID = req.session.user_id;
   if (!userID) {
     res.status(403).send('Error: You must be logged in to view this page.');
-  } else if (!validShortUrl(givenShortURL, urlDatabase)) {
+  } else if (!isShortUrlValid(givenShortURL, urlDatabase)) {
     res.status(403).send('Error: Invalid Short URL.');
   } else if (userID !== urlDatabase[req.params.shortURL].userID) {
     res.status(403).send('Error: You do not have access to this short URL.');
@@ -151,15 +151,16 @@ app.get('/urls/:shortURL', (req, res) => {
 
 app.get('/u/:shortURL', (req, res) => {
   const givenShortURL = req.params.shortURL;
-  if (!validShortUrl(givenShortURL, urlDatabase)) {
+  if (!isShortUrlValid(givenShortURL, urlDatabase)) {
     res.status(403).send('Error: Invalid Short URL.');
   } else {
     const longURL = urlDatabase[givenShortURL].longURL;
-    let createdVisit = {}; // add a newVisit entry
     const newVisitID = generateRandomString();
-    createdVisit.visitorId = newVisitID;
-    createdVisit.visitDate = new Date();
-    createdVisit.shortURLVisited = givenShortURL;
+    const createdVisit = {
+      visitorId: newVisitID,
+      visitDate: new Date(),
+      shortURLVisited: givenShortURL
+    }; // add a new visit entry
     allVisits[newVisitID] = createdVisit;
     if (!req.cookies[givenShortURL]) {
       res.cookie(givenShortURL, new Date());
@@ -170,10 +171,10 @@ app.get('/u/:shortURL', (req, res) => {
       const lastVisitTimeFromCookie = req.cookies[givenShortURL]; // bad idea to store info in cookies and not server side, but this is just an exercise
       // below code adapted from https://stackoverflow.com/questions/7709803/javascript-get-minutes-between-two-dates
       const dateDifference =
-        Date.parse(now) - Date.parse(lastVisitTimeFromCookie);
+        Date.parse(now) - Date.parse(lastVisitTimeFromCookie); // milliseconds
       const dateDifferenceInMinutes = Math.round(
         ((dateDifference % 86400000) % 3600000) / 60000
-      );
+      ); // could clean up magic numbers
       if (dateDifferenceInMinutes > 30) {
         // for an existing cookie, give 30 min timeout before considering a new unique visit; per https://matomo.org/faq/general/faq_21418/
         res.cookie(givenShortURL, new Date());
@@ -226,13 +227,14 @@ app.post('/urls', (req, res) => {
     res.status(403).send('Error: You must be logged in to view this page.');
   } else {
     const newshortID = generateRandomString();
-    let newURLObj = {};
-    newURLObj.longURL = req.body['longURL'];
-    newURLObj.userID = userID;
-    newURLObj.totalVisits = 0;
-    newURLObj.uniqueVisits = 0;
-    newURLObj.date = new Date();
-    urlDatabase[newshortID] = newURLObj;
+    const newURL = {
+      longURL: req.body['longURL'],
+      userID: userID,
+      totalVisits: 0,
+      uniqueVisits: 0,
+      date: new Date(),
+    };
+    urlDatabase[newshortID] = newURL;
     res.redirect('/urls/' + newshortID);
   }
 });
